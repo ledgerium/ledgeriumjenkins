@@ -7,17 +7,13 @@ docker network create -d bridge --subnet 172.16.239.0/24 --gateway 172.16.239.1 
 docker network create -d bridge --subnet 172.19.240.0/24 --gateway 172.19.240.1 test_net || true
 
 sleep 10
-rm -rf ledgeriumjenkins
-
-git clone https://github.com/pravn1729/ledgeriumjenkins
-sleep 10
 rootpath=$(pwd)
 jobspath="$rootpath/jobs"
 
 # Configured for SMTP GMAIL. If other meail server is required please configure in init_template.groovy
 
-ledgeriumEmail='notification@ledgerium.net';
-ledgeriumPassword='ionic-ken-finite-ajax-degum-byword';
+ledgeriumEmail='';
+ledgeriumPassword='';
 rm -rf init.groovy
 sed "s/LEDGERIUMEMAIL/$ledgeriumEmail/g" init_template.groovy > init.groovy
 sed -i "s/LEDGERIUMPASSWORD/$ledgeriumPassword/g" init.groovy

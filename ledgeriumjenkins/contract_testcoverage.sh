@@ -17,14 +17,9 @@ cd ../output
 docker volume prune -f || true
 docker-compose down || true
 
-docker network rm app_net || true
-docker network rm test_net || true
+docker network create -d bridge --subnet 172.19.241.0/24 --gateway 172.19.241.1 dev_net || true
 
-docker network create -d bridge --subnet 172.16.239.0/24 --gateway 172.16.239.1 app_net || true
-docker network create -d bridge --subnet 172.19.240.0/24 --gateway 172.19.240.1 test_net || true
-
-
-sed -i "s@'./@'/home/ledgerappuser/ledgeriumjenkinsetup/jobs/contract_testcoverage/workspace/output/@g" docker-compose.yml
+sed -i "s@'./@'HOSTPATH/contract_testcoverage/workspace/output/@g" docker-compose.yml
 docker-compose up -d || true
 
 cd ..

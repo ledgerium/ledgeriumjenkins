@@ -1,0 +1,127 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>2</daysToKeep>
+        <numToKeep>2</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0-rc">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/ledgerium/governanceapp.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 11 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+            <command>
+# oyente docker container is removed
+docker rm -f oyente || true
+cd $(pwd)/contracts
+
+chmod +777 *
+echo &quot;&quot; &gt;../oyentelogs.txt
+
+# Replacing compiler version 0.5.1 to 0.4.24 in the file to support the solidity compiler version in docker oyente
+for file in *; do 
+    if [ -f &quot;$file&quot; ]; then 
+        echo &quot;$file&quot; 
+        sed -i &apos;s/\^//g&apos; $file
+        sed -i &apos;s/0.5.1/0.4.24/g&apos; $file
+    fi 
+done
+
+# Running oyente docker container from jenkins where volume pointed to hostmachine volume
+# when docker command is executed from jenkins, it tries to look for the file paths(volume path here) present in host machine.
+docker run -d  -it --name oyente -v /home/ledgerappuser/ledgeriumjenkinsetup/jobs/contract_audit_oyente/workspace/contracts:/tmp qspprotocol/oyente-0.4.24
+
+# passing the file name to docker oyente for execution.
+for file in *; do 
+    if [ -f &quot;$file&quot; ]; then 
+        echo &quot;$file&quot; 
+
+        docker exec -t oyente bash -c &apos;cd /oyente/oyente &amp;&amp; python oyente.py -s /tmp/&apos;$file &gt;&gt; ../logs.txt 2&gt;&amp;1 || true
+
+    fi 
+done
+
+# Removing oyente container once the process is done
+docker rm -f oyente || true
+        
+#echo &quot;&quot; &gt; $(docker inspect --format=&apos;{{.LogPath}}&apos; oyente)
+
+echo &quot;oyente reports are generated&quot;
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.63">
+      <recipientList>$DEFAULT_RECIPIENTS,dev@ledgerium.net</recipientList>
+      <configuredTriggers>
+        <hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+          <email>
+            <subject>$DEFAULT_SUBJECT</subject>
+            <body>$PROJECT_DEFAULT_CONTENT</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.DevelopersRecipientProvider/>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+      </configuredTriggers>
+      <contentType>default</contentType>
+      <defaultSubject>$DEFAULT_SUBJECT</defaultSubject>
+      <defaultContent>$DEFAULT_CONTENT</defaultContent>
+      <attachmentsPattern>logs.txt</attachmentsPattern>
+      <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+      <postsendScript>$DEFAULT_POSTSEND_SCRIPT</postsendScript>
+      <attachBuildLog>false</attachBuildLog>
+      <compressBuildLog>false</compressBuildLog>
+      <replyTo>$DEFAULT_REPLYTO</replyTo>
+      <from></from>
+      <saveOutput>false</saveOutput>
+      <disabled>false</disabled>
+    </hudson.plugins.emailext.ExtendedEmailPublisher>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.37">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
+</project>
+

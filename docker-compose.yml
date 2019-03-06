@@ -10,8 +10,8 @@ services:
       - "8080:8080"
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
-      - '~/Rahul/Ledgerium/CoreLedgerium/ledgeriumjenkins/jobs:/var/jenkins_home/jobs'
-      - '~/Rahul/Ledgerium/CoreLedgerium/ledgeriumjenkins/jobs/../initgroovy:/usr/share/jenkins/ref/init.groovy.d'
+      - 'JOBSPATH:/var/jenkins_home/jobs'
+      - 'JOBSPATH/../initgroovy:/usr/share/jenkins/ref/init.groovy.d'
     restart: always
     networks:
       dev_net:

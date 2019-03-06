@@ -1,7 +1,7 @@
 # README
 **Introduction**
 
-This document is intended to provide an understanding of Jenkins Continuous integration and Continuous Deployment (CI/CD) mechanism of Ledgerium development project.
+This document is intended to provide an understanding of Jenkins build and test framework as part of Continuous integration and Continuous Deployment (CI/CD) mechanism of Ledgerium development project.
 
 **High Level Architecture**
 
@@ -51,9 +51,9 @@ http://125.254.27.14:28080
 
 Mythril (**mythril/myth docker image**) and oyente (**qspprotocol/oyente-0.4.24 docker image**) dockers are used for security auditing which are configured in jenkin jobs. This scripts trigger docker commands of security audit tools and governance app tools.
 
-Scripts are available at
+Scripts are available at **ledgeriumjenkins** folder of
 
-https://github.com/pravn1729/ledgeriumjenkins
+https://github.com/ledgerium/ledgeriumjenkins 
 
 **contract_audit_mythril**
 
